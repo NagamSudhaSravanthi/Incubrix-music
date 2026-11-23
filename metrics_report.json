@@ -1,0 +1,22 @@
+{
+  "engine_version": "1.0.0",
+  "generation_30s_runtime_s": 1.8631,
+  "realtime_factor": 16.1,
+  "length_error_ms": 0.0,
+  "sum_of_stems_residual_db": -144.14,
+  "integrated_lufs": -16.0,
+  "true_peak_dbtp": -1.7,
+  "ducking_target_db": -12.0,
+  "ducking_measured_under_speech_db": -12.0,
+  "ducking_segments_detected": 1,
+  "single_stem_regen_isolated": true,
+  "unchanged_stems_on_regen": [
+    "bass",
+    "pads",
+    "melody"
+  ],
+  "verified_error_codes": [
+    "INVALID_DURATION",
+    "NARRATION_UNREADABLE"
+  ]
+}
