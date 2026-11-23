@@ -1,0 +1,631 @@
+openapi: 3.1.0
+info:
+  title: IncuBrix AI Background Music Engine
+  description: Original instrumental music that fits a video exactly, delivered as
+    a mix plus separate instrument stems.
+  version: 1.0.0
+paths:
+  /health:
+    get:
+      summary: Liveness
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+  /ready:
+    get:
+      summary: 'Readiness: database and storage reachable'
+      operationId: ready_ready_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/music/jobs:
+    post:
+      summary: Create a music generation job
+      operationId: create_job_api_v1_music_jobs_post
+      parameters:
+      - name: idempotency-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MusicJobRequest'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobAccepted'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Too Many Requests
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Validation error
+  /api/v1/music/jobs/{job_id}/regenerate:
+    post:
+      summary: Regenerate ONE stem (for example new drums); the other stems stay identical
+      operationId: regenerate_api_v1_music_jobs__job_id__regenerate_post
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Job Id
+      - name: idempotency-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Idempotency-Key
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegenerateRequest'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobAccepted'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Too Many Requests
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not Found
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Conflict
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Validation error
+  /api/v1/jobs/{job_id}:
+    get:
+      summary: Job status, progress and result links
+      operationId: get_job_api_v1_jobs__job_id__get
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Job Id
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatus'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Too Many Requests
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Not Found
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/v1/uploads:
+    post:
+      summary: Upload a narration file
+      operationId: upload_api_v1_uploads_post
+      parameters:
+      - name: authorization
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Authorization
+      - name: x-api-key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: X-Api-Key
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_api_v1_uploads_post'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadResult'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Unauthorized
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Too Many Requests
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Internal Server Error
+        '413':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Request Entity Too Large
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+          description: Validation error
+components:
+  schemas:
+    Body_upload_api_v1_uploads_post:
+      properties:
+        file:
+          type: string
+          contentMediaType: application/octet-stream
+          title: File
+      type: object
+      required:
+      - file
+      title: Body_upload_api_v1_uploads_post
+    Ducking:
+      properties:
+        depth_db:
+          type: number
+          title: Depth Db
+          description: How far the music drops under speech (clamped to 8-15 dB).
+          default: 12.0
+      type: object
+      title: Ducking
+    ErrorBody:
+      properties:
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+        retryable:
+          type: boolean
+          title: Retryable
+        details:
+          additionalProperties: true
+          type: object
+          title: Details
+          default: {}
+      type: object
+      required:
+      - code
+      - message
+      - retryable
+      title: ErrorBody
+    ErrorResponse:
+      properties:
+        error:
+          $ref: '#/components/schemas/ErrorBody'
+      type: object
+      required:
+      - error
+      title: ErrorResponse
+    Health:
+      properties:
+        status:
+          type: string
+          title: Status
+      type: object
+      required:
+      - status
+      title: Health
+    JobAccepted:
+      properties:
+        job_id:
+          type: string
+          title: Job Id
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - succeeded
+          - failed
+          title: Status
+        status_url:
+          type: string
+          title: Status Url
+      type: object
+      required:
+      - job_id
+      - status
+      - status_url
+      title: JobAccepted
+    JobResult:
+      properties:
+        files:
+          additionalProperties:
+            type: string
+          type: object
+          title: Files
+          description: Relative file name -> download link (mix.wav, stems/drums.wav,
+            music_manifest.json ...)
+        warnings:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Warnings
+          default: []
+        summary:
+          additionalProperties: true
+          type: object
+          title: Summary
+          default: {}
+      type: object
+      required:
+      - files
+      title: JobResult
+    JobStatus:
+      properties:
+        job_id:
+          type: string
+          title: Job Id
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - succeeded
+          - failed
+          title: Status
+        progress:
+          type: integer
+          maximum: 100.0
+          minimum: 0.0
+          title: Progress
+        created_at:
+          type: string
+          title: Created At
+        finished_at:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Finished At
+        source_job_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Source Job Id
+        result:
+          anyOf:
+          - $ref: '#/components/schemas/JobResult'
+          - type: 'null'
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/ErrorBody'
+          - type: 'null'
+      type: object
+      required:
+      - job_id
+      - status
+      - progress
+      - created_at
+      title: JobStatus
+    MusicJobRequest:
+      properties:
+        prompt:
+          type: string
+          maxLength: 1000
+          title: Prompt
+          description: Mood / style description (any language).
+        duration_s:
+          type: number
+          title: Duration S
+          description: Track length in seconds, 5 to 300.
+        sections:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/Section'
+            type: array
+          - type: 'null'
+          title: Sections
+        tempo_bpm:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Tempo Bpm
+        key:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Key
+          description: e.g. "C", "A minor", "F# major"
+        loopable:
+          type: boolean
+          title: Loopable
+          default: false
+        narration_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Narration Url
+          description: http(s) URL, or an upload:// reference from POST /api/v1/uploads
+        seed:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Seed
+        output:
+          anyOf:
+          - $ref: '#/components/schemas/OutputOptions'
+          - type: 'null'
+        ducking:
+          anyOf:
+          - $ref: '#/components/schemas/Ducking'
+          - type: 'null'
+        variants:
+          anyOf:
+          - additionalProperties:
+              type: integer
+            propertyNames:
+              enum:
+              - drums
+              - bass
+              - pads
+              - melody
+            type: object
+          - type: 'null'
+          title: Variants
+          description: Per-stem variant number. Changing one regenerates only that
+            stem.
+        callback_url:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Callback Url
+          description: Optional. Receives a POST signed with HMAC-SHA256 in X-IncuBrix-Signature.
+      type: object
+      required:
+      - prompt
+      - duration_s
+      title: MusicJobRequest
+    OutputOptions:
+      properties:
+        sample_rate:
+          type: integer
+          enum:
+          - 44100
+          - 48000
+          title: Sample Rate
+          default: 48000
+        target_lufs:
+          type: number
+          maximum: -8.0
+          minimum: -30.0
+          title: Target Lufs
+          default: -16.0
+        formats:
+          items:
+            type: string
+            enum:
+            - wav
+            - mp3
+          type: array
+          title: Formats
+          default:
+          - wav
+          - mp3
+      type: object
+      title: OutputOptions
+    RegenerateRequest:
+      properties:
+        stem:
+          type: string
+          enum:
+          - drums
+          - bass
+          - pads
+          - melody
+          title: Stem
+        variant:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Variant
+          description: Variant number; default = previous + 1
+      type: object
+      required:
+      - stem
+      title: RegenerateRequest
+    Section:
+      properties:
+        start_s:
+          type: number
+          title: Start S
+          description: Section start in seconds. Snapped to the nearest bar line.
+        mood:
+          type: string
+          maxLength: 200
+          title: Mood
+          default: ''
+      type: object
+      required:
+      - start_s
+      title: Section
+    UploadResult:
+      properties:
+        url:
+          type: string
+          title: Url
+          description: Use as narration_url
+        filename:
+          type: string
+          title: Filename
+        bytes:
+          type: integer
+          title: Bytes
+      type: object
+      required:
+      - url
+      - filename
+      - bytes
+      title: UploadResult
