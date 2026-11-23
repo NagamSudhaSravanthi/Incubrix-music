@@ -20,7 +20,7 @@ from app.engine.pipeline import generate
 
 def load_requests(path: str) -> list[dict]:
     p = Path(path)
-    text = p.read_text(encoding="utf-8").strip()
+    text = p.read_text(encoding="utf-8-sig").strip()
     if not text:
         return []
     if text.startswith("["):
